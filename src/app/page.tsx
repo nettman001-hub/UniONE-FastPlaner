@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -43,6 +43,8 @@ import { HeaderAiStatus } from '@/components/HeaderAiStatus';
 import { Logo } from '@/components/Logo';
 import { BRAND_NAME, BRAND_SHORT, BRAND_TAGLINE } from '@/lib/brand';
 import { BRIEF_QUESTIONS } from '@/lib/brief-questions';
+import { ENGINE_LABEL, ENGINE_TIERS, ENGINE_WHAT, type EngineTier } from '@/lib/ai/engines';
+import { setEnginesLocally, useEngines, type EngineMap } from '@/lib/useEngine';
 
 /* ------------------------------------------------------------------ */
 /* 상수                                                                 */
@@ -258,14 +260,29 @@ function PlanCard({
 function PlanWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const createPlan = usePlannerStore((s) => s.createPlan);
+  const toast = useToast();
+  const engines = useEngines();
   const [step, setStep] = useState(1);
   const [brief, setBrief] = useState<PlanBrief>(EMPTY_BRIEF);
+  const [planEngine, setPlanEngine] = useState<EngineTier>('basic');
+  const [submitting, setSubmitting] = useState(false);
   /** AI 가 되물은 질문. 3단계를 지날 때 만들어 둔다. */
   const [followups, setFollowups] = useState<Followup[]>([]);
   const [asking, setAsking] = useState(false);
   /** 질문이 없을 때 왜 없는지. 빈 화면만 보여 주면 고장인지 아닌지 알 수 없다. */
   const [askReason, setAskReason] = useState('');
   const askedFor = useRef('');
+
+  /**
+   * 이전에 다섯 단계에 같은 엔진을 골라 두었다면 다음 기획의 기본 선택으로
+   * 보여 준다. 단계별 설정이 섞여 있으면 예기치 않게 비싼 쪽을 고르지 않도록
+   * 기본 엔진으로 시작한다.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const values = ARTIFACT_KEYS.map((key) => engines[key]);
+    setPlanEngine(values.every((value) => value === values[0]) ? values[0] : 'basic');
+  }, [engines, open]);
 
   const patch = (next: Partial<PlanBrief>) => setBrief((prev) => ({ ...prev, ...next }));
 
@@ -327,14 +344,40 @@ function PlanWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
       setFollowups([]);
       setAskReason('');
       askedFor.current = '';
+      setSubmitting(false);
     }, 200);
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (missing.length > 0) {
       setStep(1);
       return;
     }
+    if (submitting) return;
+    setSubmitting(true);
+
+    /*
+     * 이 위저드에서 고른 등급은 이제 만들 플랜의 다섯 산출물에 통일 적용한다.
+     * 서버도 같은 계정 설정을 읽어 크레딧·실제 모델 선택을 결정하므로, 플랜을
+     * 만들기 전에 저장이 끝나야 한다.
+     */
+    const previous = engines;
+    const selected = Object.fromEntries(ARTIFACT_KEYS.map((key) => [key, planEngine])) as EngineMap;
+    setEnginesLocally(selected);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ engines: selected }),
+      });
+      if (!res.ok) throw new Error('엔진 설정을 저장하지 못했습니다.');
+    } catch {
+      setEnginesLocally(previous);
+      setSubmitting(false);
+      toast('엔진 선택을 저장하지 못했습니다. 다시 시도해 주세요.', 'danger');
+      return;
+    }
+
     const answered = followups
       .filter((f) => f.answer.trim())
       .map((f) => ({ question: f.question, answer: f.answer.trim() }));
@@ -372,7 +415,7 @@ function PlanWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
             "더 오래 붙잡힌다" 로 느껴지면 안 된다.
           */}
           {step >= 3 && step < LAST_STEP && (
-            <button type="button" className="btn" onClick={submit}>
+            <button type="button" className="btn" disabled={submitting} onClick={() => void submit()}>
               이대로 만들기
             </button>
           )}
@@ -380,7 +423,7 @@ function PlanWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
             <button
               type="button"
               className="btn btn-primary"
-              disabled={step1Blocked}
+              disabled={step1Blocked || submitting}
               onClick={() => {
                 /*
                  * 4단계로 갈 때 미리 물어 두고, 4단계를 떠날 때 한 번 더 본다.
@@ -396,9 +439,9 @@ function PlanWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
               <ArrowRight size={14} />
             </button>
           ) : (
-            <button type="button" className="btn btn-primary" onClick={submit}>
+            <button type="button" className="btn btn-primary" disabled={submitting} onClick={() => void submit()}>
               <Wand2 size={14} />
-              플랜 만들기
+              {submitting ? '설정 저장 중…' : '플랜 만들기'}
             </button>
           )}
         </>
@@ -473,6 +516,26 @@ function PlanWizard({ open, onClose }: { open: boolean; onClose: () => void }) {
               </button>
             ))}
           </div>
+          <Field
+            label="이번 기획의 AI 엔진"
+            hint="플랜을 만들면 이후 PRD·기능명세·IA·플로우·와이어프레임 생성에 모두 적용됩니다. 고급 엔진은 크레딧이 두 배입니다."
+          >
+            <div className="flex flex-wrap gap-2">
+              {ENGINE_TIERS.map((tier) => (
+                <button
+                  key={tier}
+                  type="button"
+                  className={planEngine === tier ? 'btn btn-primary' : 'btn'}
+                  aria-pressed={planEngine === tier}
+                  onClick={() => setPlanEngine(tier)}
+                >
+                  {planEngine === tier && <Check size={13} />}
+                  {ENGINE_LABEL[tier]}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[11.5px] leading-relaxed text-[var(--fg-muted)]">{ENGINE_WHAT[planEngine]}</p>
+          </Field>
           {missing.length > 0 && (
             <p className="text-[11.5px] text-[var(--fg-subtle)]">
               {missing.join(' · ')}을(를) 입력하면 다음 단계로 넘어갈 수 있습니다.
