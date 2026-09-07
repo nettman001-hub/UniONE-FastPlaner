@@ -60,6 +60,15 @@ export const PRD_SCHEMA = object({
       permissions: strArray('권한 2~5개'),
     }),
   },
+  userScenarios: {
+    type: 'array',
+    description: '핵심 사용자 시나리오 2~4개. 사용자가 가치를 얻는 대표 여정을 서술한다.',
+    items: object({
+      title: str('시나리오 제목 (예: 첫 예약 페이지 개설 및 공유)'),
+      actor: str('주 사용자 (예: 신규 매장 점주)'),
+      scenario: str('사용자의 행동 및 시스템 반응 흐름 (2~4문장)'),
+    }),
+  },
   environment: object(
     {
       platforms: strArray('지원 플랫폼 (예: 반응형 웹, iOS, Android)'),
@@ -79,6 +88,27 @@ export const PRD_SCHEMA = object({
   },
   inScope: strArray('이번 범위에 포함되는 항목 4~7개'),
   outOfScope: strArray('이번 범위에서 제외하는 항목 3~5개'),
+  futureScope: strArray('향후 확장 기능 / Phase 2, 3 로드맵 3~5개'),
+  milestones: {
+    type: 'array',
+    description: '개발 마일스톤 3~4개',
+    items: object({
+      phase: str('단계명 (예: Phase 1 (MVP))'),
+      period: str('목표 기간 (예: 착수 후 1~4주차)'),
+      goals: strArray('주요 목표 및 산출물 2~4개'),
+    }),
+  },
+  risks: {
+    type: 'array',
+    description: '주요 리스크 및 대응 방안 2~4개',
+    items: object({
+      risk: str('예상되는 위험 요소 (예: 초기 매장 등록 수 저조)'),
+      mitigation: str('완화 및 대응 전략 (예: 사전 등록 혜택 및 직영점 우선 적용)'),
+    }),
+  },
+  technicalNotes: strArray(
+    '보안, 인증 및 기술/비기능 요구사항 3~5개 (예: JWT/OAuth2 인증, HTTPS 암호화, 99.9% 가용성)',
+  ),
   constraints: strArray('제약사항 3~5개'),
 });
 
@@ -273,11 +303,16 @@ export interface PrdDraft {
   goals: { text: string; metric: string }[];
   personas: { name: string; summary: string; needs: string[]; painPoints: string[] }[];
   roles: { name: string; description: string; permissions: string[] }[];
+  userScenarios?: { title: string; actor: string; scenario: string }[];
   environment: { platforms: string[]; devices: string[]; browsers: string[] };
   coreValues: string[];
   successMetrics: { name: string; target: string }[];
   inScope: string[];
   outOfScope: string[];
+  futureScope?: string[];
+  milestones?: { phase: string; period: string; goals: string[] }[];
+  risks?: { risk: string; mitigation: string }[];
+  technicalNotes?: string[];
   constraints: string[];
 }
 

@@ -90,6 +90,12 @@ export function applyPrd(draft: PrdDraft): Prd {
       description: r.description,
       permissions: arr(r.permissions),
     })),
+    userScenarios: (draft.userScenarios ?? []).map((s) => ({
+      id: uid('scenario'),
+      title: s.title ?? '',
+      actor: s.actor ?? '',
+      scenario: s.scenario ?? '',
+    })),
     environment: {
       platforms: arr(draft.environment?.platforms),
       devices: arr(draft.environment?.devices),
@@ -103,6 +109,19 @@ export function applyPrd(draft: PrdDraft): Prd {
     })),
     inScope: arr(draft.inScope),
     outOfScope: arr(draft.outOfScope),
+    futureScope: arr(draft.futureScope),
+    milestones: (draft.milestones ?? []).map((m) => ({
+      id: uid('milestone'),
+      phase: m.phase ?? '',
+      period: m.period ?? '',
+      goals: arr(m.goals),
+    })),
+    risks: (draft.risks ?? []).map((r) => ({
+      id: uid('risk'),
+      risk: r.risk ?? '',
+      mitigation: r.mitigation ?? '',
+    })),
+    technicalNotes: arr(draft.technicalNotes),
     constraints: arr(draft.constraints),
   };
 }

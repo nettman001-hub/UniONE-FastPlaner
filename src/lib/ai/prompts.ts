@@ -116,7 +116,16 @@ PRD에는 반드시 다음 내용을 포함한다.
 19. Edge Cases
 20. 개발 Milestone
 21. 주요 리스크
-22. 향후 확장 기능`,
+22. 향후 확장 기능
+
+[출력 스키마 매핑 안내]
+위 22개 요구사항 중 PRD 전략 핵심 내용을 JSON 스키마 필드에 알차게 담아주세요:
+- overview / background / goals: Executive Summary, 제품 목적, 문제 정의
+- personas / roles / userScenarios: 대상 사용자, Persona, 핵심 사용자 시나리오
+- coreValues / successMetrics / environment: 핵심 가치, Analytics / KPI, 지원 환경
+- inScope / outOfScope / futureScope: 이번 범위(포함/제외) 및 향후 확장 기능
+- milestones / risks / technicalNotes / constraints: 개발 Milestone, 주요 리스크 및 대응, 권한/인증/보안/비기능 요구사항, 제약사항
+*(기능 상세 목록/우선순위/상세명세/API/데이터/화면/플로우/인수조건/예외케이스는 PRD를 바탕으로 다음 파이프라인 단계에서 정밀하게 생성됩니다.)*`,
 
   fs: `아래 서비스의 기능명세서를 작성하세요.
 구조는 요구사항 → 기능 → 상세명세 3단계입니다.

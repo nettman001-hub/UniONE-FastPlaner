@@ -639,6 +639,18 @@ function buildPrd(brief: PlanBrief): PrdDraft {
         permissions: ['회원 관리', '콘텐츠 검수', '통계 조회', '공지 등록'],
       },
     ],
+    userScenarios: [
+      {
+        title: `첫 ${kit.noun} 등록 및 확인`,
+        actor: `${target} 대표 사용자`,
+        scenario: `사용자가 서비스 가입 후 온보딩 안내에 따라 첫 번째 ${kit.noun}을(를) 등록하고 상세 페이지에서 정상 반영 결과를 확인한다.`,
+      },
+      {
+        title: '모바일 환경에서 빠른 상태 조회',
+        actor: `${target} 대표 사용자`,
+        scenario: `이동 중 스마트폰으로 접속하여 대시보드에서 최신 ${kit.noun} 상태를 10초 이내에 빠르게 확인하고 필요한 조치를 취한다.`,
+      },
+    ],
     environment: {
       platforms:
         brief.platform === 'app'
@@ -672,6 +684,45 @@ function buildPrd(brief: PlanBrief): PrdDraft {
       '오픈 API 및 외부 연동',
       '고급 통계·데이터 내보내기',
       '유료 구독 결제 (1차 범위 제외)',
+    ],
+    futureScope: [
+      '다국어 및 글로벌 통화 지원',
+      '외부 캘린더 및 서드파티 툴 연동 API',
+      'AI 기반 자동 데이터 분석 및 리포트 추천',
+      '팀 단위 협업 권한 및 조직 관리',
+    ],
+    milestones: [
+      {
+        phase: 'Phase 1 (MVP)',
+        period: '1~4주차',
+        goals: ['기본 회원/인증 체계 구축', `핵심 ${kit.noun} CRUD 및 기본 조회 기능`, '내부 알파 테스트 완료'],
+      },
+      {
+        phase: 'Phase 2 (Beta)',
+        period: '5~8주차',
+        goals: ['외부 소규모 클로즈드 베타', '사용자 피드백 수렴 및 UX 개선', '성능 및 보안 점검'],
+      },
+      {
+        phase: 'Phase 3 (Launch)',
+        period: '9~10주차',
+        goals: ['정식 서비스 런칭', '마케팅 캠페인 연동 및 KPI 모니터링 체계 가동'],
+      },
+    ],
+    risks: [
+      {
+        risk: '초기 신규 사용자 유입 및 온보딩 이탈',
+        mitigation: '튜토리얼 간소화 및 첫 과업 완료 시 보상 제공으로 초기 정착률 제고',
+      },
+      {
+        risk: '다양한 디바이스 환경에서의 반응형 UI 깨짐',
+        mitigation: '주요 해상도별 크로스 브라우징 및 실기기 자동화 테스트 사전 구축',
+      },
+    ],
+    technicalNotes: [
+      'OAuth 2.0 소셜 로그인 및 안전한 JWT 기반 세션 관리',
+      '모든 API 통신에 HTTPS/TLS 암호화 및 Rate Limiting 적용',
+      '개인정보 등 중요 데이터는 암호화하여 안전하게 저장',
+      '모바일 환경 고려 2초 이내의 빠른 API 응답 속도 및 캐싱 전략',
     ],
     constraints: [
       '1차 릴리즈까지 8주',

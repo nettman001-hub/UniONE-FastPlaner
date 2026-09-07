@@ -109,27 +109,64 @@ export function toMarkdown(plan: Plan, artifacts?: ArtifactKey[]): string {
       out.push(`| ${r.name} | ${r.description} | ${r.permissions.join(', ')} |`);
     }
     out.push('');
-    out.push('### 1.6 사용 환경');
+    if (prd.userScenarios && prd.userScenarios.length > 0) {
+      out.push('### 1.6 핵심 사용자 시나리오');
+      for (const s of prd.userScenarios) {
+        out.push(`#### ${s.title}`);
+        if (s.actor) out.push(`- 주 사용자: ${s.actor}`);
+        out.push(s.scenario);
+        out.push('');
+      }
+    }
+    out.push('### 1.7 사용 환경');
     out.push(`- 플랫폼: ${prd.environment.platforms.join(', ') || '-'}`);
     out.push(`- 기기: ${prd.environment.devices.join(', ') || '-'}`);
     out.push(`- 브라우저/OS: ${prd.environment.browsers.join(', ') || '-'}`);
     out.push('');
-    out.push('### 1.7 핵심 가치');
+    out.push('### 1.8 핵심 가치');
     out.push(bullet(prd.coreValues));
     out.push('');
-    out.push('### 1.8 성공 지표');
+    out.push('### 1.9 성공 지표');
     out.push('| 지표 | 목표 |');
     out.push('| --- | --- |');
     for (const m of prd.successMetrics) out.push(`| ${m.name} | ${m.target} |`);
     out.push('');
-    out.push('### 1.9 범위');
+    out.push('### 1.10 범위');
     out.push('**포함**');
     out.push(bullet(prd.inScope));
     out.push('');
     out.push('**제외**');
     out.push(bullet(prd.outOfScope));
     out.push('');
-    out.push('### 1.10 제약사항');
+    if (prd.futureScope && prd.futureScope.length > 0) {
+      out.push('### 1.11 향후 확장 기능');
+      out.push(bullet(prd.futureScope));
+      out.push('');
+    }
+    if (prd.milestones && prd.milestones.length > 0) {
+      out.push('### 1.12 개발 마일스톤');
+      out.push('| 단계 | 목표 기간 | 산출물 / 주요 목표 |');
+      out.push('| --- | --- | --- |');
+      for (const ms of prd.milestones) {
+        out.push(`| ${ms.phase} | ${ms.period} | ${ms.goals.join(', ')} |`);
+      }
+      out.push('');
+    }
+    if (prd.risks && prd.risks.length > 0) {
+      out.push('### 1.13 주요 리스크 및 대응 방안');
+      out.push('| 예상 리스크 | 대응 및 완화 방안 |');
+      out.push('| --- | --- |');
+      for (const r of prd.risks) {
+        out.push(`| ${r.risk} | ${r.mitigation} |`);
+      }
+      out.push('');
+    }
+    if (prd.technicalNotes && prd.technicalNotes.length > 0) {
+      out.push('### 1.14 보안 및 기술 요구사항');
+      out.push(bullet(prd.technicalNotes));
+      out.push('');
+    }
+    out.push('### 1.15 제약사항');
     out.push(bullet(prd.constraints));
     out.push('');
   }

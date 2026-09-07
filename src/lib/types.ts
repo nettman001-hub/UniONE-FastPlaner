@@ -84,6 +84,34 @@ export interface PrdMetric {
   target: string;
 }
 
+export interface PrdUserScenario {
+  id: string;
+  /** 시나리오 제목 */
+  title: string;
+  /** 주 사용자 (액터) */
+  actor: string;
+  /** 시나리오 내용/흐름 */
+  scenario: string;
+}
+
+export interface PrdMilestone {
+  id: string;
+  /** 단계명 (예: Phase 1 - MVP) */
+  phase: string;
+  /** 목표 시기/기간 */
+  period: string;
+  /** 주요 목표 및 산출물 */
+  goals: string[];
+}
+
+export interface PrdRisk {
+  id: string;
+  /** 예상 리스크 */
+  risk: string;
+  /** 대응 및 완화 방안 */
+  mitigation: string;
+}
+
 export interface Prd {
   /** 제품 개요 */
   overview: string;
@@ -95,6 +123,8 @@ export interface Prd {
   personas: PrdPersona[];
   /** 사용자 역할 */
   roles: PrdRole[];
+  /** 핵심 사용자 시나리오 */
+  userScenarios?: PrdUserScenario[];
   /** 사용 환경 */
   environment: PrdEnvironment;
   /** 핵심 가치 */
@@ -105,6 +135,14 @@ export interface Prd {
   inScope: string[];
   /** 범위에서 제외 */
   outOfScope: string[];
+  /** 향후 확장 기능 (Phase 2, 3) */
+  futureScope?: string[];
+  /** 개발 마일스톤 */
+  milestones?: PrdMilestone[];
+  /** 주요 리스크 및 대응 */
+  risks?: PrdRisk[];
+  /** 보안 및 기술/비기능 요구사항 */
+  technicalNotes?: string[];
   /** 제약사항 */
   constraints: string[];
 }
@@ -531,11 +569,16 @@ export function emptyPrd(): Prd {
     goals: [],
     personas: [],
     roles: [],
+    userScenarios: [],
     environment: { platforms: [], devices: [], browsers: [] },
     coreValues: [],
     successMetrics: [],
     inScope: [],
     outOfScope: [],
+    futureScope: [],
+    milestones: [],
+    risks: [],
+    technicalNotes: [],
     constraints: [],
   };
 }

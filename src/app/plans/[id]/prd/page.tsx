@@ -31,7 +31,17 @@ import { usePlannerStore } from '@/lib/store';
 import { hasArtifact } from '@/lib/artifact-status';
 import { useGenerate } from '@/lib/useGenerate';
 import { validatePlan } from '@/lib/validate';
-import type { Comment, Prd, PrdGoal, PrdMetric, PrdPersona, PrdRole } from '@/lib/types';
+import type {
+  Comment,
+  Prd,
+  PrdGoal,
+  PrdMetric,
+  PrdMilestone,
+  PrdPersona,
+  PrdRisk,
+  PrdRole,
+  PrdUserScenario,
+} from '@/lib/types';
 
 /* ------------------------------------------------------------------ */
 /* 섹션 정의                                                            */
@@ -43,10 +53,15 @@ const SECTIONS = [
   { key: 'goals', label: '핵심 목표' },
   { key: 'personas', label: '타겟 유저' },
   { key: 'roles', label: '사용자 역할' },
+  { key: 'userScenarios', label: '핵심 시나리오' },
   { key: 'environment', label: '사용 환경' },
   { key: 'coreValues', label: '핵심 가치' },
   { key: 'successMetrics', label: '성공 지표' },
   { key: 'scope', label: '범위' },
+  { key: 'futureScope', label: '향후 확장 기능' },
+  { key: 'milestones', label: '개발 마일스톤' },
+  { key: 'risks', label: '주요 리스크' },
+  { key: 'technicalNotes', label: '기술/보안 요구사항' },
   { key: 'constraints', label: '제약사항' },
 ] as const;
 
@@ -555,10 +570,111 @@ export default function PrdPage() {
             </SectionCard>
           </div>
 
-          {/* 6. 사용 환경 */}
+          {/* 6. 핵심 사용자 시나리오 */}
+          <div id="prd-userScenarios" className="scroll-mt-32">
+            <SectionCard
+              title="6. 핵심 사용자 시나리오"
+              description="타겟 사용자가 제품을 통해 핵심 가치를 경험하는 주요 여정을 정의합니다."
+              action={sectionAction('userScenarios')}
+            >
+              {(prd.userScenarios ?? []).length === 0 ? (
+                <p className="py-3 text-[12.5px] text-[var(--fg-subtle)]">
+                  등록된 사용자 시나리오가 없습니다.
+                </p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="data">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '22%' }}>시나리오명</th>
+                        <th style={{ width: '20%' }}>주 사용자</th>
+                        <th>시나리오 흐름</th>
+                        <th style={{ width: 56 }} />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(prd.userScenarios ?? []).map((scenario) => (
+                        <tr key={scenario.id}>
+                          <td>
+                            <InlineText
+                              value={scenario.title}
+                              placeholder="예) 첫 등록 및 확인"
+                              onChange={(title) => updateUserScenario(scenario.id, { title })}
+                            />
+                          </td>
+                          <td>
+                            <InlineText
+                              value={scenario.actor}
+                              placeholder="예) 대표 사용자"
+                              onChange={(actor) => updateUserScenario(scenario.id, { actor })}
+                            />
+                          </td>
+                          <td>
+                            <InlineText
+                              multiline
+                              rows={2}
+                              value={scenario.scenario}
+                              placeholder="사용자의 행동과 시스템 반응 흐름"
+                              onChange={(scen) =>
+                                updateUserScenario(scenario.id, { scenario: scen })
+                              }
+                            />
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() =>
+                                void confirm({
+                                  title: '시나리오를 삭제할까요?',
+                                  message: `"${scenario.title || '(제목 없음)'}" 시나리오를 삭제합니다.`,
+                                  confirmLabel: '삭제',
+                                  danger: true,
+                                }).then((ok) => {
+                                  if (ok)
+                                    patch({
+                                      userScenarios: (prd.userScenarios ?? []).filter(
+                                        (s) => s.id !== scenario.id,
+                                      ),
+                                    });
+                                })
+                              }
+                              aria-label="삭제"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <button
+                className="btn btn-ghost btn-sm mt-2.5"
+                onClick={() =>
+                  patch({
+                    userScenarios: [
+                      ...(prd.userScenarios ?? []),
+                      {
+                        id: localId('scenario', (prd.userScenarios ?? []).length),
+                        title: '',
+                        actor: '',
+                        scenario: '',
+                      },
+                    ],
+                  })
+                }
+              >
+                <Plus size={13} />
+                시나리오 추가
+              </button>
+            </SectionCard>
+          </div>
+
+          {/* 7. 사용 환경 */}
           <div id="prd-environment" className="scroll-mt-32">
             <SectionCard
-              title="6. 사용 환경"
+              title="7. 사용 환경"
               description="지원 범위를 명확히 하면 개발 견적과 QA 범위가 잡힙니다."
               action={sectionAction('environment')}
             >
@@ -596,10 +712,10 @@ export default function PrdPage() {
             </SectionCard>
           </div>
 
-          {/* 7. 핵심 가치 */}
+          {/* 8. 핵심 가치 */}
           <div id="prd-coreValues" className="scroll-mt-32">
             <SectionCard
-              title="7. 핵심 가치"
+              title="8. 핵심 가치"
               description="경쟁 서비스와 구별되는 이 제품만의 가치를 적습니다."
               action={sectionAction('coreValues')}
             >
@@ -612,10 +728,10 @@ export default function PrdPage() {
             </SectionCard>
           </div>
 
-          {/* 8. 성공 지표 */}
+          {/* 9. 성공 지표 */}
           <div id="prd-successMetrics" className="scroll-mt-32">
             <SectionCard
-              title="8. 성공 지표"
+              title="9. 성공 지표"
               description="출시 후 측정할 수치를 목표값과 함께 정의합니다."
               action={sectionAction('successMetrics')}
             >
@@ -696,10 +812,10 @@ export default function PrdPage() {
             </SectionCard>
           </div>
 
-          {/* 9. 범위 */}
+          {/* 10. 범위 */}
           <div id="prd-scope" className="scroll-mt-32">
             <SectionCard
-              title="9. 범위"
+              title="10. 범위"
               description="이번 버전에 포함할 것과 제외할 것을 나눠 적습니다."
               action={sectionAction('scope')}
             >
@@ -726,10 +842,226 @@ export default function PrdPage() {
             </SectionCard>
           </div>
 
-          {/* 10. 제약사항 */}
+          {/* 11. 향후 확장 기능 */}
+          <div id="prd-futureScope" className="scroll-mt-32">
+            <SectionCard
+              title="11. 향후 확장 기능"
+              description="초기 MVP 이후 Phase 2, 3 단계에서 추진할 기능 로드맵입니다."
+              action={sectionAction('futureScope')}
+            >
+              <ListEditor
+                items={prd.futureScope ?? []}
+                placeholder="예) 다국어 및 해외 결제 지원"
+                addLabel="확장 기능 추가"
+                onChange={(futureScope) => patch({ futureScope })}
+              />
+            </SectionCard>
+          </div>
+
+          {/* 12. 개발 마일스톤 */}
+          <div id="prd-milestones" className="scroll-mt-32">
+            <SectionCard
+              title="12. 개발 마일스톤"
+              description="단계별 목표 일정과 핵심 산출물을 정리합니다."
+              action={sectionAction('milestones')}
+            >
+              {(prd.milestones ?? []).length === 0 ? (
+                <p className="py-3 text-[12.5px] text-[var(--fg-subtle)]">
+                  등록된 마일스톤이 없습니다.
+                </p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="data">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '22%' }}>단계 (Phase)</th>
+                        <th style={{ width: '22%' }}>목표 기간</th>
+                        <th>주요 목표 및 산출물</th>
+                        <th style={{ width: 56 }} />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(prd.milestones ?? []).map((ms) => (
+                        <tr key={ms.id}>
+                          <td>
+                            <InlineText
+                              value={ms.phase}
+                              placeholder="예) Phase 1 (MVP)"
+                              onChange={(phase) => updateMilestone(ms.id, { phase })}
+                            />
+                          </td>
+                          <td>
+                            <InlineText
+                              value={ms.period}
+                              placeholder="예) 1~4주차"
+                              onChange={(period) => updateMilestone(ms.id, { period })}
+                            />
+                          </td>
+                          <td>
+                            <ListEditor
+                              items={ms.goals}
+                              placeholder="예) 회원가입 및 핵심 CRUD 구현"
+                              addLabel="목표 추가"
+                              onChange={(goals) => updateMilestone(ms.id, { goals })}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() =>
+                                void confirm({
+                                  title: '마일스톤을 삭제할까요?',
+                                  message: `"${ms.phase || '(단계명 없음)'}" 단계를 삭제합니다.`,
+                                  confirmLabel: '삭제',
+                                  danger: true,
+                                }).then((ok) => {
+                                  if (ok)
+                                    patch({
+                                      milestones: (prd.milestones ?? []).filter(
+                                        (m) => m.id !== ms.id,
+                                      ),
+                                    });
+                                })
+                              }
+                              aria-label="삭제"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <button
+                className="btn btn-ghost btn-sm mt-2.5"
+                onClick={() =>
+                  patch({
+                    milestones: [
+                      ...(prd.milestones ?? []),
+                      {
+                        id: localId('milestone', (prd.milestones ?? []).length),
+                        phase: '',
+                        period: '',
+                        goals: [],
+                      },
+                    ],
+                  })
+                }
+              >
+                <Plus size={13} />
+                마일스톤 추가
+              </button>
+            </SectionCard>
+          </div>
+
+          {/* 13. 주요 리스크 및 대응 */}
+          <div id="prd-risks" className="scroll-mt-32">
+            <SectionCard
+              title="13. 주요 리스크 및 대응 방안"
+              description="출시 및 운영 과정에서 예상되는 잠재 위험 요소와 완화 방안을 사전에 대비합니다."
+              action={sectionAction('risks')}
+            >
+              {(prd.risks ?? []).length === 0 ? (
+                <p className="py-3 text-[12.5px] text-[var(--fg-subtle)]">
+                  등록된 리스크가 없습니다.
+                </p>
+              ) : (
+                <div className="table-wrap">
+                  <table className="data">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '45%' }}>예상 리스크</th>
+                        <th>완화 및 대응 방안</th>
+                        <th style={{ width: 56 }} />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(prd.risks ?? []).map((risk) => (
+                        <tr key={risk.id}>
+                          <td>
+                            <InlineText
+                              value={risk.risk}
+                              placeholder="예) 초기 가입자 온보딩 이탈"
+                              onChange={(r) => updateRisk(risk.id, { risk: r })}
+                            />
+                          </td>
+                          <td>
+                            <InlineText
+                              value={risk.mitigation}
+                              placeholder="예) 간소화된 3단계 온보딩 제공"
+                              onChange={(m) => updateRisk(risk.id, { mitigation: m })}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() =>
+                                void confirm({
+                                  title: '리스크 항목을 삭제할까요?',
+                                  message: `"${risk.risk || '(내용 없음)'}" 항목을 삭제합니다.`,
+                                  confirmLabel: '삭제',
+                                  danger: true,
+                                }).then((ok) => {
+                                  if (ok)
+                                    patch({
+                                      risks: (prd.risks ?? []).filter((r) => r.id !== risk.id),
+                                    });
+                                })
+                              }
+                              aria-label="삭제"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <button
+                className="btn btn-ghost btn-sm mt-2.5"
+                onClick={() =>
+                  patch({
+                    risks: [
+                      ...(prd.risks ?? []),
+                      {
+                        id: localId('risk', (prd.risks ?? []).length),
+                        risk: '',
+                        mitigation: '',
+                      },
+                    ],
+                  })
+                }
+              >
+                <Plus size={13} />
+                리스크 추가
+              </button>
+            </SectionCard>
+          </div>
+
+          {/* 14. 보안 및 기술 요구사항 */}
+          <div id="prd-technicalNotes" className="scroll-mt-32">
+            <SectionCard
+              title="14. 보안 및 기술 요구사항"
+              description="인증 방식, 암호화, 가용성, 규제 준수 등 비기능적 기술 요구사항을 정리합니다."
+              action={sectionAction('technicalNotes')}
+            >
+              <ListEditor
+                items={prd.technicalNotes ?? []}
+                placeholder="예) HTTPS 암호화 및 JWT 기반 세션 관리"
+                addLabel="기술 요구사항 추가"
+                onChange={(technicalNotes) => patch({ technicalNotes })}
+              />
+            </SectionCard>
+          </div>
+
+          {/* 15. 제약사항 */}
           <div id="prd-constraints" className="scroll-mt-32">
             <SectionCard
-              title="10. 제약사항"
+              title="15. 제약사항"
               description="일정, 예산, 기술, 법·규제 등 사전에 정해진 제약을 적습니다."
               action={sectionAction('constraints')}
             >
@@ -766,6 +1098,28 @@ export default function PrdPage() {
   function updateMetric(metricId: string, next: Partial<PrdMetric>) {
     patch({
       successMetrics: prd.successMetrics.map((m) => (m.id === metricId ? { ...m, ...next } : m)),
+    });
+  }
+
+  function updateUserScenario(scenarioId: string, next: Partial<PrdUserScenario>) {
+    patch({
+      userScenarios: (prd.userScenarios ?? []).map((s) =>
+        s.id === scenarioId ? { ...s, ...next } : s,
+      ),
+    });
+  }
+
+  function updateMilestone(milestoneId: string, next: Partial<PrdMilestone>) {
+    patch({
+      milestones: (prd.milestones ?? []).map((m) =>
+        m.id === milestoneId ? { ...m, ...next } : m,
+      ),
+    });
+  }
+
+  function updateRisk(riskId: string, next: Partial<PrdRisk>) {
+    patch({
+      risks: (prd.risks ?? []).map((r) => (r.id === riskId ? { ...r, ...next } : r)),
     });
   }
 }
@@ -1131,7 +1485,34 @@ function DocView({ prd, title, oneLiner }: { prd: Prd; title: string; oneLiner: 
           )}
         </DocSection>
 
-        <DocSection index={6} id="prd-environment" title="사용 환경">
+        <DocSection index={6} id="prd-userScenarios" title="핵심 사용자 시나리오">
+          {(prd.userScenarios ?? []).length === 0 ? (
+            <p className="text-[13px] text-[var(--fg-subtle)]">등록된 시나리오가 없습니다.</p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(prd.userScenarios ?? []).map((scenario) => (
+                <div
+                  key={scenario.id}
+                  className="rounded-lg border border-[var(--border)] bg-[var(--surface-2)] p-3.5"
+                >
+                  <p className="text-[13.5px] font-extrabold">{scenario.title || '제목 없음'}</p>
+                  {scenario.actor && (
+                    <p className="mt-1 text-[12px] font-semibold text-[var(--primary)]">
+                      주 사용자: {scenario.actor}
+                    </p>
+                  )}
+                  {scenario.scenario && (
+                    <p className="mt-2 whitespace-pre-wrap text-[12.5px] leading-relaxed text-[var(--fg-muted)]">
+                      {scenario.scenario}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </DocSection>
+
+        <DocSection index={7} id="prd-environment" title="사용 환경">
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <p className="mb-1.5 text-[11.5px] font-bold text-[var(--fg-subtle)]">플랫폼</p>
@@ -1150,11 +1531,11 @@ function DocView({ prd, title, oneLiner }: { prd: Prd; title: string; oneLiner: 
           </div>
         </DocSection>
 
-        <DocSection index={7} id="prd-coreValues" title="핵심 가치">
+        <DocSection index={8} id="prd-coreValues" title="핵심 가치">
           <DocList items={prd.coreValues} />
         </DocSection>
 
-        <DocSection index={8} id="prd-successMetrics" title="성공 지표">
+        <DocSection index={9} id="prd-successMetrics" title="성공 지표">
           {prd.successMetrics.length === 0 ? (
             <p className="text-[13px] text-[var(--fg-subtle)]">등록된 지표가 없습니다.</p>
           ) : (
@@ -1179,7 +1560,7 @@ function DocView({ prd, title, oneLiner }: { prd: Prd; title: string; oneLiner: 
           )}
         </DocSection>
 
-        <DocSection index={9} id="prd-scope" title="범위">
+        <DocSection index={10} id="prd-scope" title="범위">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <p className="mb-1.5 text-[11.5px] font-bold text-[var(--ok)]">포함 (In scope)</p>
@@ -1194,7 +1575,81 @@ function DocView({ prd, title, oneLiner }: { prd: Prd; title: string; oneLiner: 
           </div>
         </DocSection>
 
-        <DocSection index={10} id="prd-constraints" title="제약사항">
+        <DocSection index={11} id="prd-futureScope" title="향후 확장 기능">
+          <DocList items={prd.futureScope ?? []} />
+        </DocSection>
+
+        <DocSection index={12} id="prd-milestones" title="개발 마일스톤">
+          {(prd.milestones ?? []).length === 0 ? (
+            <p className="text-[13px] text-[var(--fg-subtle)]">등록된 마일스톤이 없습니다.</p>
+          ) : (
+            <div className="table-wrap">
+              <table className="data">
+                <thead>
+                  <tr>
+                    <th style={{ width: '22%' }}>단계</th>
+                    <th style={{ width: '22%' }}>목표 기간</th>
+                    <th>주요 목표 및 산출물</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(prd.milestones ?? []).map((ms) => (
+                    <tr key={ms.id}>
+                      <td className="font-semibold">{ms.phase || '-'}</td>
+                      <td className="text-[var(--fg-muted)]">{ms.period || '-'}</td>
+                      <td>
+                        <div className="flex flex-wrap gap-1">
+                          {ms.goals.filter((g) => g.trim()).length === 0 ? (
+                            <span className="text-[var(--fg-subtle)]">-</span>
+                          ) : (
+                            ms.goals
+                              .filter((g) => g.trim())
+                              .map((g, index) => (
+                                <span key={`${g}-${index}`} className="chip">
+                                  {g}
+                                </span>
+                              ))
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </DocSection>
+
+        <DocSection index={13} id="prd-risks" title="주요 리스크 및 대응 방안">
+          {(prd.risks ?? []).length === 0 ? (
+            <p className="text-[13px] text-[var(--fg-subtle)]">등록된 리스크가 없습니다.</p>
+          ) : (
+            <div className="table-wrap">
+              <table className="data">
+                <thead>
+                  <tr>
+                    <th style={{ width: '45%' }}>예상 리스크</th>
+                    <th>완화 및 대응 방안</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(prd.risks ?? []).map((risk) => (
+                    <tr key={risk.id}>
+                      <td className="font-semibold">{risk.risk || '-'}</td>
+                      <td className="text-[var(--fg-muted)]">{risk.mitigation || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </DocSection>
+
+        <DocSection index={14} id="prd-technicalNotes" title="보안 및 기술 요구사항">
+          <DocList items={prd.technicalNotes ?? []} />
+        </DocSection>
+
+        <DocSection index={15} id="prd-constraints" title="제약사항">
           <DocList items={prd.constraints} />
         </DocSection>
       </div>

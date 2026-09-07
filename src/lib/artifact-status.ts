@@ -46,10 +46,15 @@ export function hasArtifact(plan: PlanDocuments, key: ArtifactKey): boolean {
         any(prd.goals) ||
         any(prd.personas) ||
         any(prd.roles) ||
+        any(prd.userScenarios) ||
         any(prd.coreValues) ||
         any(prd.successMetrics) ||
         any(prd.inScope) ||
         any(prd.outOfScope) ||
+        any(prd.futureScope) ||
+        any(prd.milestones) ||
+        any(prd.risks) ||
+        any(prd.technicalNotes) ||
         any(prd.constraints)
       );
     }
