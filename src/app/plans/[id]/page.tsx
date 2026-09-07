@@ -25,6 +25,7 @@ import {
   Sparkles,
   Square,
   Table2,
+  Terminal,
   Trash2,
   Wand2,
 } from 'lucide-react';
@@ -42,6 +43,8 @@ import {
 import { FixWithAi } from '@/components/FixWithAi';
 import { PlanSkills } from '@/components/PlanSkills';
 import { EngineToggle } from '@/components/EngineToggle';
+import { PromptViewerModal } from '@/components/PromptViewerModal';
+import { useAuth } from '@/lib/auth/client';
 import { usePlannerStore } from '@/lib/store';
 import { hasArtifact } from '@/lib/artifact-status';
 import { BRIEF_QUESTIONS } from '@/lib/brief-questions';
@@ -167,7 +170,9 @@ function PlanOverview() {
   /* 고급 엔진은 값이 두 배다. 보여 주는 값과 깎이는 값이 갈리면 안 된다. */
   const engines = useEngines();
 
+  const { admin } = useAuth();
   const [briefOpen, setBriefOpen] = useState(false);
+  const [promptArtifact, setPromptArtifact] = useState<ArtifactKey | null>(null);
   /** 전체 자동 생성 진행 여부·현재 단계는 서버 작업 상태에서 온다. */
   const running = autoRunning;
   const autoStep = running ? pending : null;
@@ -485,6 +490,20 @@ function PlanOverview() {
                         막아 두면 앞 단계를 만들기 전에는 뒤 단계 등급을 정할 수
                         없어서, 전체 자동 생성 전에 준비해 둘 방법이 사라진다.
                       */}
+                      {/*
+                        관리자 전용 생성 명령(프롬프트) 보기 버튼
+                      */}
+                      {admin && (
+                        <button
+                          type="button"
+                          className="btn btn-sm text-[12px]"
+                          onClick={() => setPromptArtifact(key)}
+                          title="생성시 프롬프트보기 (관리자 전용)"
+                        >
+                          <Terminal size={13} />
+                          명령보기
+                        </button>
+                      )}
                       <EngineToggle target={key} disabled={busy} />
                       <button
                         className={`btn btn-primary btn-sm${pending === key ? ' is-busy' : ''}${
@@ -730,6 +749,14 @@ function PlanOverview() {
           />
         </Field>
       </Modal>
+
+      {/* 관리자 전용 생성 프롬프트 보기 모달 */}
+      <PromptViewerModal
+        open={promptArtifact !== null}
+        onClose={() => setPromptArtifact(null)}
+        artifact={promptArtifact}
+        plan={plan}
+      />
 
       {dialog}
     </div>
