@@ -93,39 +93,27 @@ const INSTRUCTION: Record<ArtifactKey, string> = {
 페르소나는 실제 인물처럼 이름과 상황을 붙이고, 그 사람이 지금 겪는 불편을 페인포인트에 적습니다.
 성공 지표는 반드시 숫자와 기간을 포함합니다.
 
-PRD에는 반드시 다음 내용을 포함한다.
+PRD에는 반드시 다음 15가지 핵심 전략 내용을 포함한다.
 
-1. Executive Summary
-2. 제품 목적
-3. 문제 정의
-4. 대상 사용자
-5. 사용자 Persona
-6. 핵심 사용자 시나리오
-7. 전체 기능 목록
-8. P0 / P1 / P2 기능 우선순위
-9. 기능별 상세 요구사항
-10. 사용자 Flow
-11. 화면 구성
-12. 데이터 모델
-13. API 설계
-14. 권한 및 인증
-15. 비기능 요구사항
-16. 보안
-17. Analytics / KPI
-18. Acceptance Criteria
-19. Edge Cases
-20. 개발 Milestone
-21. 주요 리스크
-22. 향후 확장 기능
+1. Executive Summary (제품 개요)
+2. 문제 정의 및 기획 배경
+3. 제품 목적 및 핵심 목표 (지표 포함)
+4. 대상 사용자 및 페르소나 (Persona)
+5. 사용자 역할 및 권한
+6. 핵심 사용자 시나리오 (User Scenarios)
+7. 사용 환경 및 지원 플랫폼
+8. 핵심 가치 제안 (Core Values)
+9. 성공 지표 (Analytics / KPI)
+10. 제품 개발 범위 (In-Scope / Out-of-Scope)
+11. 향후 확장 기능 (Future Roadmap)
+12. 개발 Milestone (단계별 추진 일정)
+13. 주요 리스크 및 완화 대응 방안
+14. 보안, 인증 및 기술/비기능 요구사항
+15. 제약사항
 
-[출력 스키마 매핑 안내]
-위 22개 요구사항 중 PRD 전략 핵심 내용을 JSON 스키마 필드에 알차게 담아주세요:
-- overview / background / goals: Executive Summary, 제품 목적, 문제 정의
-- personas / roles / userScenarios: 대상 사용자, Persona, 핵심 사용자 시나리오
-- coreValues / successMetrics / environment: 핵심 가치, Analytics / KPI, 지원 환경
-- inScope / outOfScope / futureScope: 이번 범위(포함/제외) 및 향후 확장 기능
-- milestones / risks / technicalNotes / constraints: 개발 Milestone, 주요 리스크 및 대응, 권한/인증/보안/비기능 요구사항, 제약사항
-*(기능 상세 목록/우선순위/상세명세/API/데이터/화면/플로우/인수조건/예외케이스는 PRD를 바탕으로 다음 파이프라인 단계에서 정밀하게 생성됩니다.)*`,
+※ 참고:
+- 전체 기능 목록, P0/P1/P2 우선순위, 기능별 상세 요구사항, 데이터/API 설계, 인수 조건(Acceptance Criteria), Edge Cases는 본 PRD를 바탕으로 다음 파이프라인 단계인 [기능명세서(FS)]에서 구체화됩니다.
+- 사용자 Flow 및 화면 구성은 이후 [정보구조도(IA)], [유저 플로우(Flow)], [와이어프레임] 단계에서 전문적으로 설계됩니다.`,
 
   fs: `아래 서비스의 기능명세서를 작성하세요.
 구조는 요구사항 → 기능 → 상세명세 3단계입니다.
