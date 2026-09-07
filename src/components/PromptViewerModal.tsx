@@ -3,9 +3,8 @@
 import { useMemo, useState } from 'react';
 import { Check, Copy, FileText, Terminal, Code2 } from 'lucide-react';
 import { Modal, useToast } from '@/components/ui';
-import { SYSTEM_PROMPT, buildPrompt } from '@/lib/ai/prompts';
+import { SYSTEM_PROMPT, buildPrompt, moreFlowsBlock } from '@/lib/ai/prompts';
 import { ARTIFACT_SCHEMA } from '@/lib/ai/schemas';
-import { moreFlowsBlock } from '@/lib/jobs/queue';
 import { ARTIFACT_LABEL, type ArtifactKey, type Plan } from '@/lib/types';
 
 interface PromptViewerModalProps {

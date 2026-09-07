@@ -245,3 +245,43 @@ export function buildPlacementPrompt(plan: Plan, features: { id: string; name: s
     features.map((f) => `- ${f.id} ${f.name} — ${f.description || '설명 없음'}`).join('\n'),
   ].join('\n');
 }
+
+/**
+ * 플로우를 더 만들 때 프롬프트에 덧붙이는 지시.
+ */
+export function moreFlowsBlock(plan: Plan): string {
+  const inFlows = new Set(
+    plan.flows.flatMap((f) => f.nodes.map((n) => n.pageId).filter(Boolean) as string[]),
+  );
+  const uncovered = plan.iaPages.filter(
+    (p) => p.type === 'page' && p.featureIds.length > 0 && !inFlows.has(p.id),
+  );
+
+  const lines = [
+    '## 이미 만들어 둔 플로우 (다시 만들지 마세요)',
+    ...(plan.flows.length > 0
+      ? plan.flows.map((f) => `- ${f.id} ${f.name} — ${f.description || '설명 없음'}`)
+      : ['- 없음']),
+    '',
+    '## 이번에 만들 것',
+    '위 목록에 **없는** 새 플로우만 3~5개 만드세요. 같은 여정을 이름만 바꿔 다시 내지 마세요.',
+  ];
+
+  if (uncovered.length > 0) {
+    lines.push(
+      '',
+      '아래 화면들은 아직 어느 플로우에도 나오지 않습니다. 이 화면들을 지나는 여정을 우선 만드세요.',
+      ...uncovered
+        .slice(0, 20)
+        .map((p) => `- ${p.id} ${p.name} (${p.path}) — ${p.description || '설명 없음'}`),
+    );
+    if (uncovered.length > 20) lines.push(`- 외 ${uncovered.length - 20}개`);
+  } else {
+    lines.push(
+      '',
+      '모든 화면이 이미 어느 플로우엔가 나옵니다. 예외·실패·관리자 여정처럼 아직 안 그린 경로를 만드세요.',
+    );
+  }
+
+  return lines.join('\n');
+}
